@@ -9,3 +9,4 @@ cmds = ["npx prisma generate", "npm run build"]
 
 [start]
 cmd = "npm run start"
+# force rebuild Sat Jul 11 22:14:13     2026
