@@ -1,0 +1,184 @@
+// ════════════════════════════════════════════════════════════════
+// FINESTAI — Schema Prisma (PostgreSQL)
+// ════════════════════════════════════════════════════════════════
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Clínicas (multi-tenant) ──────────────────────────────────
+model Clinica {
+  id          String   @id @default(cuid())
+  nome        String
+  cnpj        String?  @unique
+  responsavel String?
+  coren       String?
+  whatsapp    String?
+  email       String?
+  cidade      String?
+  plano       Plano    @default(ESSENCIAL)
+  ativo       Boolean  @default(true)
+  criadoEm   DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  usuarios    Usuario[]
+  pacientes   Paciente[]
+  lancamentos Lancamento[]
+  evolucoes   Evolucao[]
+  termos      Termo[]
+
+  @@map("clinicas")
+}
+
+enum Plano {
+  ESSENCIAL
+  PROFISSIONAL
+  CLINICA
+}
+
+// ── Usuários (profissionais da clínica) ──────────────────────
+model Usuario {
+  id         String   @id @default(cuid())
+  clinicaId  String
+  nome       String
+  email      String   @unique
+  senhaHash  String
+  role       Role     @default(PROFISSIONAL)
+  ativo      Boolean  @default(true)
+  criadoEm  DateTime @default(now())
+
+  clinica    Clinica  @relation(fields: [clinicaId], references: [id])
+  lancamentos Lancamento[]
+  evolucoes  Evolucao[]
+
+  @@map("usuarios")
+}
+
+enum Role {
+  ADMIN
+  PROFISSIONAL
+  VISUALIZADOR
+}
+
+// ── Pacientes ────────────────────────────────────────────────
+model Paciente {
+  id          String   @id @default(cuid())
+  clinicaId   String
+  nome        String
+  cpf         String?
+  dataNasc    DateTime?
+  telefone    String?
+  email       String?
+  alergias    String?
+  obs         String?
+  ativo       Boolean  @default(true)
+  criadoEm   DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  clinica     Clinica    @relation(fields: [clinicaId], references: [id])
+  evolucoes   Evolucao[]
+  termos      Termo[]
+
+  @@index([clinicaId])
+  @@index([cpf])
+  @@map("pacientes")
+}
+
+// ── Lançamentos financeiros ───────────────────────────────────
+model Lancamento {
+  id           String   @id @default(cuid())
+  clinicaId    String
+  usuarioId    String?
+  tipo         TipoLanc
+  valor        Decimal  @db.Decimal(10, 2)
+  descricao    String
+  categoria    String
+  conta        String
+  procedimento String?
+  obs          String?
+  metodo       String   @default("manual")
+  hasAnexo     Boolean  @default(false)
+  data         DateTime
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  clinica      Clinica  @relation(fields: [clinicaId], references: [id])
+  usuario      Usuario? @relation(fields: [usuarioId], references: [id])
+
+  @@index([clinicaId])
+  @@index([data])
+  @@index([tipo])
+  @@map("lancamentos")
+}
+
+enum TipoLanc {
+  entrada
+  saida
+}
+
+// ── Evoluções clínicas ────────────────────────────────────────
+model Evolucao {
+  id               String   @id @default(cuid())
+  clinicaId        String
+  pacienteId       String
+  usuarioId        String?
+  procedimento     String
+  data             DateTime
+  queixa           String?
+  produto          String?
+  lote             String?
+  validade         DateTime?
+  diluicao         Decimal? @db.Decimal(5, 2)
+  unidades         Decimal? @db.Decimal(6, 2)
+  mapaAplicacao    Json?
+  tcle             Boolean  @default(true)
+  orientacao       Boolean  @default(true)
+  semIntercorrencias Boolean @default(true)
+  obsS1            String?
+  avEstatica       String?
+  avDinamica       String?
+  simetria         String?
+  intercorrencias  String   @default("nao")
+  intercorrenciasDesc String?
+  criadoEm        DateTime @default(now())
+  atualizadoEm    DateTime @updatedAt
+
+  clinica          Clinica  @relation(fields: [clinicaId], references: [id])
+  paciente         Paciente @relation(fields: [pacienteId], references: [id])
+  usuario          Usuario? @relation(fields: [usuarioId], references: [id])
+
+  @@index([clinicaId])
+  @@index([pacienteId])
+  @@map("evolucoes")
+}
+
+// ── Termos TCLE ───────────────────────────────────────────────
+model Termo {
+  id           String      @id @default(cuid())
+  clinicaId    String
+  pacienteId   String
+  procedimento String
+  status       StatusTermo @default(GERADO)
+  arquivoUrl   String?
+  assinadoEm  DateTime?
+  criadoEm    DateTime    @default(now())
+
+  clinica      Clinica   @relation(fields: [clinicaId], references: [id])
+  paciente     Paciente  @relation(fields: [pacienteId], references: [id])
+
+  @@index([clinicaId])
+  @@index([pacienteId])
+  @@map("termos")
+}
+
+enum StatusTermo {
+  GERADO
+  ENVIADO
+  ASSINADO
+  CANCELADO
+}

@@ -1,0 +1,42 @@
+/* ════════════════════════════════════════════════════════════════
+   FINESTAI — CSS Global
+   ════════════════════════════════════════════════════════════════ */
+:root {
+  --g900: #0D1F16;
+  --g800: #1B3A2D;
+  --g700: #2D5A44;
+  --g500: #4A8C6A;
+  --g200: #C8E6C9;
+  --g100: #E8F5E9;
+  --g050: #F4FAF6;
+  --gold:  #C9A84C;
+  --goldt: #FFF8E1;
+  --rose:  #C9847A;
+  --roset: #FFF0EE;
+  --ink:   #1A1A1A;
+  --mid:   #5A5A5A;
+  --faint: #9A9A9A;
+  --border:#E0E0E0;
+  --white: #FFFFFF;
+  --bg:    #F7F8F6;
+  --sidebar-w: 240px;
+  --header-h: 60px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.5; }
+a { text-decoration: none; color: inherit; }
+button { cursor: pointer; font-family: inherit; border: none; }
+input, select, textarea { font-family: inherit; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Utilitários base */
+.hidden { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }

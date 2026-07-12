@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: finestai
+      POSTGRES_PASSWORD: finestai_senha_segura
+      POSTGRES_DB: finestai_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://finestai:finestai_senha_segura@postgres:5432/finestai_db
+      JWT_SECRET: TROQUE_POR_STRING_ALEATORIA_FORTE_AQUI
+      NODE_ENV: production
+    depends_on:
+      - postgres
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed && node server.js"
+
+volumes:
+  postgres_data:
